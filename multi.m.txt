@@ -1,0 +1,53 @@
+clear;
+clc;
+
+% Parameters
+Nt = 2;  % Number of transmit antennas
+Nr = 2;  % Number of receive antennas
+N = 10;  % Number of symbols (pilot sequence length)
+
+% Generate pilot symbols (BPSK symbols)
+pilot_symbols = [1; -1];  % BPSK symbols
+pilot_sequence = repmat(pilot_symbols, 1, N);  % Repeat the sequence
+
+% Transmitted signal matrix
+X = pilot_sequence;  % Size: 2 x N
+
+% Define the true channel matrix (matches your image)
+H_true = [0.5 + 0.5i, 0.1 + 0.3i;
+          0.2 + 0.4i, 0.7 + 0.1i];
+
+% Simulate the received signal with very low noise
+noise_variance = 0.01;  
+noise = sqrt(noise_variance) * (randn(Nr, N) + 1i * randn(Nr, N));
+
+% Received signal
+Y_received = H_true * X + noise;
+
+% Display the true channel matrix
+disp('True Channel Matrix:');
+disp(H_true);
+
+% Channel Estimation using Least Squares (LS) Method
+H_estimate = (X' * X) \ (X' * Y_received);
+
+% Make sure estimated matrix is 2x2
+if size(H_estimate, 1) ~= 2 || size(H_estimate, 2) ~= 2
+    H_estimate = H_estimate(1:2, 1:2);
+end
+
+% Calculate channel estimation error
+error = norm(H_true - H_estimate, 'fro');
+disp(['Channel Estimation Error (Frobenius Norm): ', num2str(error)]);
+
+% Plot the true channel matrix
+figure;
+imagesc(abs(H_true));
+title('True Channel Matrix (Magnitude)', 'FontSize', 14);
+colorbar;
+
+% Plot the channel estimation error
+figure;
+imagesc(abs(H_true - H_estimate));
+title('Channel Estimation Error (Magnitude)', 'FontSize', 14);
+colorbar;
